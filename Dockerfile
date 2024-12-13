@@ -1,9 +1,23 @@
-FROM maven:3-openjdk-17
+FROM alpine:edge AS build
 
-WORKDIR /usr/src/mymaven
+WORKDIR /workspace
+
+RUN apk update
+
+RUN apk add npm
+
+RUN npm i -g stylus
+
+WORKDIR /code
+
+COPY bin/css/style.styl .
+
+RUN stylus style.styl
+
+FROM httpd
+
+WORKDIR /usr/local/apache2/htdocs
 
 COPY bin .
 
-ENTRYPOINT ["mvn"]
-
-CMD ["clean", "install", "compile", "spring-boot:run"]
+COPY --from=build /code/style.css css
